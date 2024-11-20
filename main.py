@@ -115,30 +115,20 @@ def process_static_image(image: Image.Image, crop_percent: int, selected_side: s
     width, height = image.size
     crop_width = int(width * crop_percent / 100)
 
-    # 获取透明信息
-    transparency = None
-    if image.info.get('transparency') is not None:
-        transparency = image.info['transparency']
-
-    # 如果是 P 模式（调色板模式），先转换为 RGBA
-    if image.mode == 'P':
-        image = image.convert('RGBA')
-
-    # 创建空白画布，确保背景透明
-    result = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-
     if selected_side == "left":
         cropped = image.crop((0, 0, crop_width, height))
         mirrored = ImageOps.mirror(cropped)
-        result.paste(cropped, (0, 0), cropped if image.mode == 'RGBA' else None)
-        result.paste(mirrored, (crop_width, 0), mirrored if image.mode == 'RGBA' else None)
+        result = Image.new('RGBA', (crop_width * 2, height))
+        result.paste(cropped, (0, 0))
+        result.paste(mirrored, (crop_width, 0))
     else:
         cropped = image.crop((width - crop_width, 0, width, height))
         mirrored = ImageOps.mirror(cropped)
-        result.paste(mirrored, (0, 0), mirrored if image.mode == 'RGBA' else None)
-        result.paste(cropped, (crop_width, 0), cropped if image.mode == 'RGBA' else None)
+        result = Image.new('RGBA', (crop_width * 2, height))
+        result.paste(mirrored, (0, 0))
+        result.paste(cropped, (crop_width, 0))
 
-    return result, transparency
+    return result
 
 
 def correct_image_orientation(image):
