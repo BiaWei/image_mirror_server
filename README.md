@@ -8,6 +8,10 @@
 
 效果：
 
+测试网页：
+
+[点击这里](https://image.0d000721.vip)。
+
 原图：
 
 ![Original image](https://github.com/BiaWei/image_mirror_server/blob/main/image.gif "Original image")
@@ -26,7 +30,5 @@
 ![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/processed_image_70percent.gif?raw=true "Processed image")
 
 
-测试网页：
 
-[点击这里](https://image.0d000721.vip)。
 
