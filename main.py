@@ -59,6 +59,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"]
 )
 
+
 class RateLimiter:
     def __init__(self):
         self.requests = defaultdict(list)
@@ -75,7 +76,9 @@ class RateLimiter:
     def add_request(self, client_id: str):
         self.requests[client_id].append(time.time())
 
+
 rate_limiter = RateLimiter()
+
 
 class FileManager:
     def __init__(self):
@@ -105,6 +108,7 @@ class FileManager:
                 expired_users.append(user_id)
         for user_id in expired_users:
             del self.user_dirs[user_id]
+
 
 file_manager = FileManager()
 
@@ -166,9 +170,11 @@ async def rate_limit_middleware(request: Request, call_next):
 
 from PIL import Image, ImageOps, ImageSequence
 
+from PIL import Image, ImageOps, ImageSequence
+
 def process_animated_image(image: Image.Image, crop_percent: int, selected_side: str) -> tuple:
     """
-    修复 GIF 图片残影问题并处理透明背景
+    修复透明背景和残影问题的 GIF 图片处理函数
     """
     frames = []
     durations = []
@@ -177,6 +183,7 @@ def process_animated_image(image: Image.Image, crop_percent: int, selected_side:
     width, height = image.size
     crop_width = int(width * crop_percent / 100)
 
+    # 检查透明索引（如果存在）
     transparency_index = image.info.get('transparency', None)
 
     try:
@@ -205,25 +212,22 @@ def process_animated_image(image: Image.Image, crop_percent: int, selected_side:
                 new_frame.paste(mirrored, (0, 0), mirrored)
                 new_frame.paste(cropped, (crop_width, 0), cropped)
 
-            # 处理残影问题，根据 disposal_method 清理画布
+            # 根据 disposal_method 处理残影
             if disposal_method == 0 or disposal_method == 1:
-                # 不清理背景，直接叠加
                 if previous_frame:
                     new_frame = Image.alpha_composite(previous_frame, new_frame)
             elif disposal_method == 2:
-                # 清理为透明背景（默认处理方式，无需额外处理）
-                pass
+                pass  # 恢复到背景（透明）
             elif disposal_method == 3 and previous_frame:
-                # 恢复到上一帧的状态
                 new_frame = Image.alpha_composite(previous_frame, new_frame)
 
-            # 量化为调色板模式
+            # 转换为调色板模式
             reduced_frame = new_frame.convert('P', palette=Image.ADAPTIVE, colors=255)
 
-            # 处理透明索引
+            # 如果存在透明索引，则添加到调色板
             if transparency_index is not None:
                 palette = reduced_frame.getpalette()
-                transparent_color = (0, 0, 0)
+                transparent_color = (0, 0, 0)  # 假定透明色为黑色
                 transparent_index = len(palette) // 3
                 if transparent_index < 256:
                     palette[transparent_index * 3:transparent_index * 3 + 3] = transparent_color
@@ -241,6 +245,7 @@ def process_animated_image(image: Image.Image, crop_percent: int, selected_side:
         pass  # 到达最后一帧
 
     return frames, durations, disposal_methods
+
 
 
 @app.post("/process-image")
@@ -272,7 +277,7 @@ async def process_image(
                 save_all=True,
                 append_images=frames[1:],
                 duration=durations,
-                transparency=frames[0].info['transparency'],
+                # transparency=frames[0].info['transparency'],
                 disposal=2,
                 loop=0
             )
