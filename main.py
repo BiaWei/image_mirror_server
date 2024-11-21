@@ -255,6 +255,8 @@ async def process_image(
         crop_percent: int = Form(...),
         selected_side: str = Form(...)
 ):
+    if selected_side == 'right':
+        crop_percent = 100 - crop_percent
     try:
         content = await file.read()
         if len(content) > MAX_FILE_SIZE_MB * 1024 * 1024:
