@@ -167,10 +167,96 @@ async def rate_limit_middleware(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# another method
+def process_animated_image_spare(image: Image.Image, crop_percent: int, selected_side: str) -> tuple:
+    """
+    修复透明背景和残影问题的 GIF 图片处理函数
+    增加了更严格的颜色处理逻辑，防止白色区域变为透明
+    """
+    frames = []
+    durations = []
+    disposal_methods = []
 
-from PIL import Image, ImageOps, ImageSequence
+    width, height = image.size
+    crop_width = int(width * crop_percent / 100)
 
-from PIL import Image, ImageOps, ImageSequence
+    print("Original size:", width, height)
+    print("Crop width:", crop_width)
+
+    try:
+        previous_frame = None
+        palette = None
+
+        for frame_index, frame in enumerate(ImageSequence.Iterator(image)):
+            duration = frame.info.get('duration', 100)
+            durations.append(duration)
+            disposal_method = getattr(frame, 'disposal_method', 2)
+            disposal_methods.append(disposal_method)
+
+            # 转换为 RGBA 模式，保持原始颜色
+            current = frame.convert('RGBA')
+
+            print(f"Frame {frame_index} original mode:", current.mode)
+
+            # 创建新的透明画布
+            new_frame = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
+
+            # 裁剪和镜像处理
+            if selected_side == "left":
+                cropped = current.crop((0, 0, crop_width, height))
+                mirrored = ImageOps.mirror(cropped)
+                new_frame.paste(cropped, (0, 0), cropped)
+                new_frame.paste(mirrored, (crop_width, 0), mirrored)
+            else:
+                cropped = current.crop((width - crop_width, 0, width, height))
+                mirrored = ImageOps.mirror(cropped)
+                new_frame.paste(mirrored, (0, 0), mirrored)
+                new_frame.paste(cropped, (crop_width, 0), cropped)
+
+            # 根据 disposal_method 处理残影
+            if (disposal_method == 0 or disposal_method == 1) and previous_frame:
+                new_frame = Image.alpha_composite(previous_frame, new_frame)
+            elif disposal_method == 3 and previous_frame:
+                new_frame = Image.alpha_composite(previous_frame, new_frame)
+
+            # 创建 RGB 图像并处理透明度
+            rgb_frame = Image.new('RGB', new_frame.size, (255, 255, 255))  # 使用白色背景
+            rgb_frame.paste(new_frame, mask=new_frame.split()[3])
+
+            if palette is None:
+                # 第一帧：创建调色板，保留256个颜色位置
+                converted_frame = rgb_frame.convert('P', palette=Image.ADAPTIVE, colors=255)
+                palette = converted_frame.getpalette()
+                # 确保透明色位置的颜色为黑色
+                palette[:3] = [0, 0, 0]
+            else:
+                # 后续帧：使用相同的调色板
+                converted_frame = rgb_frame.convert('P', palette=Image.ADAPTIVE, colors=255)
+                converted_frame.putpalette(palette)
+
+            # 更严格的透明度处理
+            alpha = new_frame.split()[3]
+            # 只有完全透明的像素（alpha=0）才会被标记为透明
+            mask = alpha.point(lambda x: 0 if x == 0 else 255)
+
+            # 仅对完全透明的区域应用透明色
+            converted_frame.paste(0, mask=ImageOps.invert(mask))
+
+            # 保存关键信息
+            converted_frame.info['transparency'] = 0
+            converted_frame.info['duration'] = duration
+
+            print(f"Frame {frame_index} final mode:", converted_frame.mode)
+            print(f"Frame {frame_index} has transparency:", 'transparency' in converted_frame.info)
+
+            frames.append(converted_frame)
+            previous_frame = new_frame
+
+    except EOFError:
+        pass
+
+    return frames, durations, disposal_methods
+
 
 def process_animated_image(image: Image.Image, crop_percent: int, selected_side: str) -> tuple:
     """
@@ -271,18 +357,34 @@ async def process_image(
         print(f"Processing image. Is animated: {is_animated}")
 
         if is_animated:
-            frames, durations, disposal_methods = process_animated_image(image, crop_percent, selected_side)
+            try:
+                frames, durations, disposal_methods = process_animated_image(image, crop_percent, selected_side)
 
-            # 保存动画 GIF
-            frames[0].save(
-                output_path,
-                save_all=True,
-                append_images=frames[1:],
-                duration=durations,
-                # transparency=frames[0].info['transparency'],
-                disposal=2,
-                loop=0
-            )
+                # 保存动画 GIF
+                frames[0].save(
+                    output_path,
+                    save_all=True,
+                    append_images=frames[1:],
+                    duration=durations,
+                    # transparency=frames[0].info['transparency'],
+                    disposal=2,
+                    loop=0
+                )
+            except Exception as e:
+                frames, durations, disposal_methods = process_animated_image_spare(image, crop_percent, selected_side)
+
+                # 保存动画 GIF
+                frames[0].save(
+                    output_path,
+                    save_all=True,
+                    append_images=frames[1:],
+                    duration=durations,
+                    # transparency=frames[0].info['transparency'],
+                    disposal=2,
+                    loop=0
+                )
+
+
         else:
             result = process_static_image(image, crop_percent, selected_side)
             if file.filename.lower().endswith(('.jpg', '.jpeg')):
