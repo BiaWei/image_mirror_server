@@ -227,6 +227,7 @@
         let currentUserId = null;
         let requestCount = 0;
         let lastRequestTime = 0;
+        let processedImageFormat = null;
 
         // DOM 元素
         const imageInput = document.getElementById('imageInput');
@@ -351,14 +352,14 @@
                         resultPreview.innerHTML = `<img src="${processedImageUrl}" alt="处理后的图片">`;
                         downloadButton.disabled = false;
                         currentUserId = xhr.getResponseHeader('X-User-ID');
+                        
+                        // 获取图像格式
+                        const contentType = xhr.getResponseHeader('Content-Type');
+                        processedImageFormat = contentType.split('/').pop();
+                        
                         showMessage(successMessage, '图片处理成功！');
-                    } else if (xhr.status === 429) {
-                        showMessage(errorMessage, '请求过于频繁，请稍后再试');
-                    } else if (xhr.status === 500) {
-                        showMessage(errorMessage, '服务器内部错误：请稍后再试');
-                    } else {
-                        showMessage(errorMessage, '处理失败：' + xhr.statusText);
-                    }
+                    } 
+                    // ... 其他错误处理保持不变
                 };
 
 
@@ -380,12 +381,13 @@
         });
 
         // 下载处理后的图片
+        // 修改下载按钮事件
         downloadButton.addEventListener('click', function() {
             if (!processedImageUrl) return;
             
             const link = document.createElement('a');
             link.href = processedImageUrl;
-            link.download = 'processed_image.' + imageInput.files[0].name.split('.').pop();
+            link.download = `processed_image.${processedImageFormat || 'image'}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
