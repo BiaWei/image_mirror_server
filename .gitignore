@@ -15,7 +15,7 @@ __pycache__/
 temp/
 *.tmp
 *.log
-examples/test/
+examples/test
 
 # 系统生成的文件
 .DS_Store
