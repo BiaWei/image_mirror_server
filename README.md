@@ -18,16 +18,16 @@
 
 左侧镜像：
 
-![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/processed_image.gif?raw=true "Processed image")
+![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/examples/readme/processed_image.gif?raw=true "Processed image")
 
 
 右侧镜像：
 
-![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/processed_image_right.gif?raw=true "Processed image")
+![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/examples/readme/processed_image_right.gif?raw=true "Processed image")
 
 左侧镜像70%：
 
-![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/processed_image_70percent.gif?raw=true "Processed image")
+![Processed image](https://github.com/BiaWei/image_mirror_server/blob/main/examples/readme/processed_image_70percent.gif?raw=true "Processed image")
 
 
 

@@ -170,12 +170,21 @@
             </div>
 
             <div>
-                <label for="cropPercent">裁切百分比：<span id="rangeValue">50</span>%</label>
-                <input type="range" id="cropPercent" min="1" max="100" value="50">
+                <label for="horizontalCropPercent">左右裁切百分比：<span id="horizontalRangeValue">50</span>%</label>
+                <input type="range" id="horizontalCropPercent" min="1" max="100" value="50">
+            </div>
+
+            <div>
+                <label for="verticalCropPercent">上下裁切百分比：<span id="verticalRangeValue">50</span>%</label>
+                <input type="range" id="verticalCropPercent" min="1" max="100" value="50">
             </div>
 
             <div>
                 <label>选择裁切方向：</label>
+                <!-- 添加单侧裁切标签 -->
+                <div>
+                    <label>单侧裁切：</label>
+                </div>
                 <div class="radio-group">
                     <label>
                         <input type="radio" name="side" value="left" checked>
@@ -185,8 +194,39 @@
                         <input type="radio" name="side" value="right">
                         右侧
                     </label>
+                    <label>
+                        <input type="radio" name="side" value="up">
+                        上侧
+                    </label>
+                    <label>
+                        <input type="radio" name="side" value="down">
+                        下侧
+                    </label>
+                </div>
+                <!-- 添加万花筒标签 -->
+                <div>
+                    <label>万花筒：</label>
+                </div>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="side" value="q1">
+                        第一象限
+                    </label>
+                    <label>
+                        <input type="radio" name="side" value="q2">
+                        第二象限
+                    </label>
+                    <label>
+                        <input type="radio" name="side" value="q3">
+                        第三象限
+                    </label>
+                    <label>
+                        <input type="radio" name="side" value="q4">
+                        第四象限
+                    </label>
                 </div>
             </div>
+
 
             <div class="button-group">
                 <button id="processButton" disabled>处理图片</button>
@@ -230,8 +270,10 @@
 
         // DOM 元素
         const imageInput = document.getElementById('imageInput');
-        const cropPercent = document.getElementById('cropPercent');
-        const rangeValue = document.getElementById('rangeValue');
+        const horizontalCropPercent = document.getElementById('horizontalCropPercent');
+        const verticalCropPercent = document.getElementById('verticalCropPercent');
+        const horizontalRangeValue = document.getElementById('horizontalRangeValue');
+        const verticalRangeValue = document.getElementById('verticalRangeValue');
         const processButton = document.getElementById('processButton');
         const downloadButton = document.getElementById('downloadButton');
         const originalPreview = document.getElementById('originalPreview');
@@ -307,8 +349,12 @@
         });
 
         // 裁切百分比显示
-        cropPercent.addEventListener('input', function(e) {
-            rangeValue.textContent = e.target.value;
+        horizontalCropPercent.addEventListener('input', function(e) {
+            horizontalRangeValue.textContent = e.target.value;
+        });
+
+        verticalCropPercent.addEventListener('input', function(e) {
+            verticalRangeValue.textContent = e.target.value;
         });
 
         // 处理图片
@@ -324,7 +370,8 @@
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('crop_percent', cropPercent.value);
+            formData.append('horizontal_crop_percent', horizontalCropPercent.value);
+            formData.append('vertical_crop_percent', verticalCropPercent.value);
             formData.append('selected_side', document.querySelector('input[name="side"]:checked').value);
 
             loadingMessage.style.display = 'block';
