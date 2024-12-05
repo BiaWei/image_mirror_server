@@ -14,7 +14,7 @@
 
 原图：
 
-![Original image](https://github.com/BiaWei/image_mirror_server/blob/main/image.gif "Original image")
+![Original image](https://github.com/BiaWei/image_mirror_server/blob/main/examples/readme/image.gif "Original image")
 
 左侧镜像：
 

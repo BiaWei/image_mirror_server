@@ -8,6 +8,7 @@ def crop_mirror_image(image: Image.Image, new_canvas: Image.Image,
                       crop_width: int, crop_height: int, width: int, height: int,
                       side: str):
     result = new_canvas
+    print(f"crop_width: {crop_width}, crop_height: {crop_height}, width: {width}, height: {height}, side: {side}")
     if side == "left":
         cropped = image.crop((0, 0, crop_width, height))
         mirrored = ImageOps.mirror(cropped)
@@ -141,40 +142,40 @@ def process_animated_image_spare(image: Image.Image, horizontal_crop_percent: in
             # 创建新的透明画布
             if selected_side == "left" or selected_side == "right":
                 new_frame = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_frame, crop_width, crop_height, width, height, selected_side)
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, selected_side)
 
             elif selected_side == "up" or selected_side == "down":
                 new_frame = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_frame, crop_width, crop_height, width, height, selected_side)
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, selected_side)
 
             elif selected_side == "q1":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "left")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "up")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "left")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height,
+                                              "up")
 
             elif selected_side == "q2":
-                new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "right")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "up")
+                new_frame = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, "right")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height,
+                                              "up")
 
             elif selected_side == "q3":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "right")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "down")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "right")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height,
+                                              "down")
 
             elif selected_side == "q4":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "left")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "left")
                 width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "down")
-
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height,
+                                              "down")
             else:
                 raise ValueError(f"Invalid selected_side: {selected_side}")
 
@@ -252,39 +253,36 @@ def process_animated_image(image: Image.Image, horizontal_crop_percent: int, ver
             # 创建新的透明画布
             if selected_side == "left" or selected_side == "right":
                 new_frame = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_frame, crop_width, crop_height, width, height, selected_side)
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, selected_side)
 
             elif selected_side == "up" or selected_side == "down":
                 new_frame = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_frame, crop_width, crop_height, width, height, selected_side)
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, selected_side)
 
             elif selected_side == "q1":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "left")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "up")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "left")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height, "up")
 
             elif selected_side == "q2":
-                new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "right")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "up")
+                new_frame = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(current, new_frame, crop_width, crop_height, width, height, "right")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height, "up")
 
             elif selected_side == "q3":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "right")
-                width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "down")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "right")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height, "down")
 
             elif selected_side == "q4":
                 new_canvas = Image.new('RGBA', (crop_width * 2, height), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(image, new_canvas, crop_width, crop_height, width, height, "left")
+                new_frame = crop_mirror_image(current, new_canvas, crop_width, crop_height, width, height, "left")
                 width, height = new_frame.size
-                new_canvas = Image.new('RGBA', (width, crop_height * 2), (0, 0, 0, 0))
-                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, width, height, "down")
+                new_canvas = Image.new('RGBA', (crop_width * 2, crop_height * 2), (0, 0, 0, 0))
+                new_frame = crop_mirror_image(new_frame, new_canvas, crop_width, crop_height, crop_width * 2, height, "down")
             else:
                 raise ValueError(f"Invalid selected_side: {selected_side}")
 
@@ -397,9 +395,9 @@ if __name__ == '__main__':
     file_path = os.path.join("examples", "test", "img.gif")
     output_dir = os.path.join("examples", "test", "output")
 
-    horizontal_crop_percent = 50
-    vertical_crop_percent = 50
+    horizontal_crop_percent = 29
+    vertical_crop_percent = 100
 
-    selected_side = "q4"
+    selected_side = "q1"
     file_path = process_image_locally(file_path, horizontal_crop_percent, vertical_crop_percent, selected_side, output_dir)
 
