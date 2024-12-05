@@ -367,14 +367,25 @@ def process_image_locally(file_path, horizontal_crop_percent, vertical_crop_perc
         if is_animated:
             # 处理 GIF 动画
             frames, durations, _ = process_animated_image_combined(image, horizontal_crop_percent, vertical_crop_percent,  selected_side)
-            frames[0].save(
-                output_path,
-                save_all=True,
-                append_images=frames[1:],
-                duration=durations,
-                disposal=2,
-                loop=0
-            )
+            try:
+                frames[0].save(
+                    output_path,
+                    save_all=True,
+                    append_images=frames[1:],
+                    duration=durations,
+                    disposal=2,
+                    loop=0
+                )
+            except Exception as e:
+                frames[0].save(
+                    output_path,
+                    save_all=True,
+                    append_images=frames[1:],
+                    duration=durations,
+                    disposal=1,
+                    loop=0
+                )
+
         else:
             # 处理静态图像
             image = correct_image_orientation(image)
@@ -392,11 +403,11 @@ def process_image_locally(file_path, horizontal_crop_percent, vertical_crop_perc
 
 
 if __name__ == '__main__':
-    file_path = os.path.join("examples", "test", "img.gif")
+    file_path = os.path.join("examples", "test", "IMG_0501.gif")
     output_dir = os.path.join("examples", "test", "output")
 
-    horizontal_crop_percent = 29
-    vertical_crop_percent = 100
+    horizontal_crop_percent = 60
+    vertical_crop_percent = 40
 
     selected_side = "q1"
     file_path = process_image_locally(file_path, horizontal_crop_percent, vertical_crop_percent, selected_side, output_dir)
