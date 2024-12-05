@@ -139,19 +139,33 @@ async def process_image(
     try:
         content = await file.read()
         if len(content) > MAX_FILE_SIZE_MB * 1024 * 1024:
-            raise HTTPException(status_code=413, detail=f"File size exceeds maximum limit of {MAX_FILE_SIZE_MB}MB")
+            raise HTTPException(status_code=413, detail=f"文件大小超过最大限制 {MAX_FILE_SIZE_MB}MB")
 
         user_id = str(uuid.uuid4())
         user_dir = file_manager.get_user_dir(user_id)
-        image = Image.open(io.BytesIO(content))
-        output_path = os.path.join(user_dir, f"processed_{file.filename}")
+
+        # 更智能的文件类型检测
+        try:
+            # 尝试从文件内容判断真正的文件类型
+            image = Image.open(io.BytesIO(content))
+
+            # 获取真实的图像格式
+            actual_format = image.format.lower()
+            print(f"实际图像格式: {actual_format}")
+
+            # 为输出文件选择正确的扩展名
+            output_filename = f"processed_image.{actual_format.lower()}"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"无法打开图像: {str(e)}")
+
+        output_path = os.path.join(user_dir, output_filename)
 
         is_animated = getattr(image, "is_animated", False)
         print(f"Processing image. Is animated: {is_animated}")
 
-        if is_animated:
-
-            frames, durations, disposal_methods = process_animated_image_combined(image, horizontal_crop_percent, vertical_crop_percent,  selected_side)
+        if is_animated or actual_format == 'gif':
+            frames, durations, disposal_methods = process_animated_image_combined(image, horizontal_crop_percent,
+                                                                                  vertical_crop_percent, selected_side)
 
             # 保存动画 GIF
             frames[0].save(
@@ -166,22 +180,30 @@ async def process_image(
 
         else:
             result = process_static_image(image, horizontal_crop_percent, vertical_crop_percent, selected_side)
-            if file.filename.lower().endswith(('.jpg', '.jpeg')):
-                if result.mode != "RGB":
-                    print("Converting static image mode to RGB for JPEG compatibility.")
-                    result = result.convert("RGB")
-            result.save(output_path)
 
-        print(f"Image processed successfully. Saved to {output_path}")
+            # 根据原始图像格式保存
+            if actual_format in ['jpeg', 'jpg']:
+                if result.mode != "RGB":
+                    print("转换静态图像模式为 RGB 以兼容 JPEG")
+                    result = result.convert("RGB")
+                result.save(output_path, format='JPEG')
+            elif actual_format == 'png':
+                result.save(output_path, format='PNG')
+            else:
+                # 对于其他格式，使用原始格式保存
+                result.save(output_path, format=actual_format.upper())
+
+        print(f"图像处理成功。保存至 {output_path}")
         return FileResponse(
             output_path,
-            media_type=f"image/{file.filename.split('.')[-1]}",
+            media_type=f"image/{actual_format}",
             headers={"X-User-ID": user_id}
         )
 
     except Exception as e:
-        print(f"Error processing image: {e}")
+        print(f"处理图像时发生未处理的错误: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/")
 async def serve_index():
